@@ -1,17 +1,9 @@
-//
-//  ContentView.swift
-//  Groceny_App
-//
-//  Created by students on 17/12/25.
-//
-
 import SwiftUI
 import SwiftData
 
 struct ContentView: View {
     
-    @Environment(\.modelContext)
-    private var modelContext
+    @Environment(\.modelContext) private var modelContext
     
     @State private var title: String = ""
     @State private var isAlertShowing: Bool = false
@@ -20,45 +12,59 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack {
-            List{
-                ForEach(lists)
-                {
-                    list in
+            List {
+                ForEach(lists) { list in
                     Text(list.title)
                         .font(.title2)
                         .fontWeight(.light)
-                        .padding(.vertical,2)
-                    
-                    
+                        .padding(.vertical, 2)
+                        .swipeActions{
+                            Button(role: .destructive){
+                                withAnimation{modelContext.delete(list)}
+                            }
+                            label:{
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                        .swipeActions(edge: .leading){
+                            Button("Done", systemImage: list.isCompleted == false ? "checkmark" : "x.fill"){
+                                list.isCompleted.toggle()
+                            }
+                            .tint(list.isCompleted == false ? .green : .accentColor)
+                        }
                 }
             }
             .navigationTitle("Grocery List")
-            .toolbar{
-                            ToolbarItem(placement:.topBarTrailing){
-                                Button{
-                                    isAlertShowing.toggle()
-                                } label: {
-                                    Image(systemName: "carrot")
-                                        .imageScale(.large)
-                                }
-                            }
+            .toolbar {
+                if lists.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            isAlertShowing.toggle()
+                        } label: {
+                            Image(systemName: "carrot")
+                                .imageScale(.large)
                         }
-            
-            .overlay{
-                           if lists.isEmpty{
-                               ContentUnavailableView("Empty Cart",
-                                                      
-                                                      systemImage:"cart.circle",description: Text("Add some shopping items"))
-                           }
-                       }
+                    }
+                }
+            }
+            .overlay {
+                if lists.isEmpty {
+                    ContentUnavailableView(
+                        "Empty Cart",
+                        systemImage: "cart.circle",
+                        description: Text("Add some shopping items")
+                    )
+                }
+            }
         }
     }
 }
-
 #Preview("Second List") {
-    do{
-        let container = try!
-        ModelContainer(for: Listt.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+    do {
+        let container = try ModelContainer(
+            for: Listt.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
         
         let ctx = container.mainContext
         ctx.insert(Listt(title: "Swift Coding Club", isCompleted: true))
@@ -67,9 +73,12 @@ struct ContentView: View {
         
         return ContentView()
             .modelContainer(container)
+    } catch {
+        fatalError("Failed to create model container")
     }
 }
+
 #Preview {
     ContentView()
-        .modelContainer(for: Listt.self , inMemory: true)
+        .modelContainer(for: Listt.self, inMemory: true)
 }
