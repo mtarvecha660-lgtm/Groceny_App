@@ -15,9 +15,9 @@ struct ContentView: View {
             List {
                 ForEach(lists) { list in
                     Text(list.title)
-                        .font(.title2)
-                        .fontWeight(.light)
-                        .padding(.vertical, 2)
+                        .foregroundStyle(list.isCompleted == false ? Color.primary : Color.accentColor)
+                        .strikethrough(list.isCompleted)
+                        .italic(list.isCompleted)
                         .swipeActions{
                             Button(role: .destructive){
                                 withAnimation{modelContext.delete(list)}
